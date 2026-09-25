@@ -789,7 +789,6 @@ export default function MemberRegistrationForm() {
           message: memberPhotoError.message,
           name: memberPhotoError.name,
           status: memberPhotoError.status,
-          statusText: memberPhotoError.statusText,
           path: memberPhotoPath,
           userId: session.user.id,
         });
@@ -826,7 +825,6 @@ export default function MemberRegistrationForm() {
           message: guardianPhotoError.message,
           name: guardianPhotoError.name,
           status: guardianPhotoError.status,
-          statusText: guardianPhotoError.statusText,
           path: guardianPhotoPath,
           userId: session.user.id,
         });
