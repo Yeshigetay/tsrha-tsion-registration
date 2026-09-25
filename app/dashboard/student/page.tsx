@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Eye,
@@ -95,12 +96,19 @@ export default function StudentPage() {
 
       await Promise.all(
         loadedMembers.map(async (member) => {
-          if (!member.member_photo_path) return;
+          if (!member.member_photo_path) {
+            return;
+          }
 
-          const { data: signedUrlData, error: signedUrlError } =
-            await supabase.storage
-              .from("member-photos")
-              .createSignedUrl(member.member_photo_path, 60 * 60);
+          const {
+            data: signedUrlData,
+            error: signedUrlError,
+          } = await supabase.storage
+            .from("member-photos")
+            .createSignedUrl(
+              member.member_photo_path,
+              60 * 60,
+            );
 
           if (!signedUrlError && signedUrlData?.signedUrl) {
             urlMap[member.id] = signedUrlData.signedUrl;
@@ -122,6 +130,10 @@ export default function StudentPage() {
       setRefreshing(false);
     }
   }
+
+  // ============================================================
+  // INITIAL LOAD
+  // ============================================================
 
   useEffect(() => {
     loadMembers();
@@ -149,10 +161,13 @@ export default function StudentPage() {
         member.registration_number
           .toLowerCase()
           .includes(searchText) ||
-        (member.phone ?? "").toLowerCase().includes(searchText);
+        (member.phone ?? "")
+          .toLowerCase()
+          .includes(searchText);
 
       const matchesGender =
-        genderFilter === "all" || member.gender === genderFilter;
+        genderFilter === "all" ||
+        member.gender === genderFilter;
 
       const matchesRegistration =
         registrationFilter === "all" ||
@@ -198,7 +213,9 @@ export default function StudentPage() {
       `የ ${member.first_name} ${member.father_name} መረጃ መሰረዝ ይፈልጋሉ?\n\nይህ ሂደት የአባሉን መረጃ በቋሚነት ያጠፋል።`,
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     try {
       setError("");
@@ -220,11 +237,16 @@ export default function StudentPage() {
       // Remove photo URL from local state
       setPhotoUrls((current) => {
         const updated = { ...current };
+
         delete updated[member.id];
+
         return updated;
       });
 
-      // Remove stored photos if they exist
+      // ========================================================
+      // REMOVE MEMBER PHOTO FROM STORAGE
+      // ========================================================
+
       const filesToDelete: string[] = [];
 
       if (member.member_photo_path) {
@@ -232,9 +254,10 @@ export default function StudentPage() {
       }
 
       if (filesToDelete.length > 0) {
-        const { error: storageError } = await supabase.storage
-          .from("member-photos")
-          .remove(filesToDelete);
+        const { error: storageError } =
+          await supabase.storage
+            .from("member-photos")
+            .remove(filesToDelete);
 
         if (storageError) {
           console.error(
@@ -259,7 +282,9 @@ export default function StudentPage() {
   // ============================================================
 
   function formatDate(date: string) {
-    if (!date) return "-";
+    if (!date) {
+      return "-";
+    }
 
     return new Intl.DateTimeFormat("en-GB", {
       year: "numeric",
@@ -284,20 +309,29 @@ export default function StudentPage() {
 
   return (
     <div className="min-h-screen space-y-6 pb-10">
+
       {/* ========================================================
           PREMIUM HEADER
       ======================================================== */}
 
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0d3b78] via-[#10498d] to-[#082d5c] px-6 py-7 text-white shadow-xl md:px-8">
+
         {/* Decorative circles */}
+
         <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-white/5" />
+
         <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-[#d4af37]/10" />
 
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
           <div>
+
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/90 backdrop-blur">
+
               <Users size={15} />
+
               የአባላት አስተዳደር
+
             </div>
 
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -308,20 +342,25 @@ export default function StudentPage() {
               የጽርሐ ጽዮን ሰንበት ት/ቤት አባላትን
               ይመልከቱ፣ ይፈልጉ እና ያስተዳድሩ።
             </p>
+
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+
             <BackToHomeButton />
 
             <Link
-              href="/dashboard/students/new"
+              href="/dashboard/student/new"
               className="inline-flex items-center gap-2 rounded-xl bg-[#d4af37] px-4 py-2.5 text-sm font-bold text-[#172033] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#e0bd4d]"
             >
               <Plus size={18} />
               አዲስ አባል
             </Link>
+
           </div>
+
         </div>
+
       </section>
 
       {/* ========================================================
@@ -329,10 +368,15 @@ export default function StudentPage() {
       ======================================================== */}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
         {/* TOTAL */}
+
         <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+
           <div className="flex items-start justify-between">
+
             <div>
+
               <p className="text-sm font-medium text-slate-500">
                 ጠቅላላ አባላት
               </p>
@@ -340,22 +384,29 @@ export default function StudentPage() {
               <p className="mt-2 text-3xl font-bold text-[#0d3b78]">
                 {totalMembers}
               </p>
+
             </div>
 
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0d3b78]/10 text-[#0d3b78]">
               <Users size={22} />
             </div>
+
           </div>
 
           <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full w-full rounded-full bg-[#0d3b78]" />
           </div>
+
         </div>
 
         {/* MALE */}
+
         <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+
           <div className="flex items-start justify-between">
+
             <div>
+
               <p className="text-sm font-medium text-slate-500">
                 ወንድ አባላት
               </p>
@@ -363,22 +414,29 @@ export default function StudentPage() {
               <p className="mt-2 text-3xl font-bold text-[#0d3b78]">
                 {maleMembers}
               </p>
+
             </div>
 
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0d3b78]">
               <UserRound size={22} />
             </div>
+
           </div>
 
           <p className="mt-3 text-xs text-slate-400">
             ከጠቅላላ አባላት
           </p>
+
         </div>
 
         {/* FEMALE */}
+
         <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+
           <div className="flex items-start justify-between">
+
             <div>
+
               <p className="text-sm font-medium text-slate-500">
                 ሴት አባላት
               </p>
@@ -386,22 +444,29 @@ export default function StudentPage() {
               <p className="mt-2 text-3xl font-bold text-[#0d3b78]">
                 {femaleMembers}
               </p>
+
             </div>
 
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-pink-50 text-[#9b4d74]">
               <UserRoundCheck size={22} />
             </div>
+
           </div>
 
           <p className="mt-3 text-xs text-slate-400">
             ከጠቅላላ አባላት
           </p>
+
         </div>
 
         {/* NEW MEMBERS */}
+
         <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+
           <div className="flex items-start justify-between">
+
             <div>
+
               <p className="text-sm font-medium text-slate-500">
                 አዲስ አባላት
               </p>
@@ -409,17 +474,21 @@ export default function StudentPage() {
               <p className="mt-2 text-3xl font-bold text-[#0d3b78]">
                 {newMembers}
               </p>
+
             </div>
 
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#d4af37]/15 text-[#a17b05]">
               <UserRoundX size={22} />
             </div>
+
           </div>
 
           <p className="mt-3 text-xs text-slate-400">
             አዲስ ምዝገባ
           </p>
+
         </div>
+
       </section>
 
       {/* ========================================================
@@ -428,12 +497,15 @@ export default function StudentPage() {
 
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 shadow-sm">
+
           <div className="flex items-start gap-3">
+
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100">
               !
             </div>
 
             <div>
+
               <p className="font-semibold">
                 ስህተት ተፈጥሯል
               </p>
@@ -441,8 +513,11 @@ export default function StudentPage() {
               <p className="mt-1">
                 {error}
               </p>
+
             </div>
+
           </div>
+
         </div>
       )}
 
@@ -451,11 +526,15 @@ export default function StudentPage() {
       ======================================================== */}
 
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        {/* Card Header */}
+
         <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-5">
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
             <div>
+
               <div className="flex items-center gap-2">
+
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0d3b78]/10 text-[#0d3b78]">
                   <Filter size={18} />
                 </div>
@@ -463,11 +542,13 @@ export default function StudentPage() {
                 <h2 className="font-bold text-[#172033]">
                   አባላትን ይፈልጉ
                 </h2>
+
               </div>
 
               <p className="mt-1 text-sm text-slate-500">
                 በስም፣ በምዝገባ ቁጥር ወይም በስልክ ይፈልጉ።
               </p>
+
             </div>
 
             {(search ||
@@ -481,18 +562,25 @@ export default function StudentPage() {
                 ማጣሪያዎችን አጥፋ
               </button>
             )}
+
           </div>
+
         </div>
 
         <div className="p-6">
+
           <div className="grid gap-4 lg:grid-cols-4">
+
             {/* SEARCH */}
+
             <div className="lg:col-span-2">
+
               <label className="mb-2 block text-sm font-semibold text-[#172033]">
                 አባል ፈልግ
               </label>
 
               <div className="relative">
+
                 <Search
                   size={19}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
@@ -505,11 +593,15 @@ export default function StudentPage() {
                   placeholder="ስም፣ የምዝገባ ቁጥር ወይም ስልክ..."
                   className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-[#172033] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0d3b78] focus:bg-white focus:ring-4 focus:ring-[#0d3b78]/10"
                 />
+
               </div>
+
             </div>
 
             {/* GENDER */}
+
             <div>
+
               <label className="mb-2 block text-sm font-semibold text-[#172033]">
                 ጾታ
               </label>
@@ -523,10 +615,13 @@ export default function StudentPage() {
                 <option value="male">ወንድ</option>
                 <option value="female">ሴት</option>
               </select>
+
             </div>
 
             {/* REGISTRATION TYPE */}
+
             <div>
+
               <label className="mb-2 block text-sm font-semibold text-[#172033]">
                 የምዝገባ አይነት
               </label>
@@ -542,11 +637,15 @@ export default function StudentPage() {
                 <option value="new">አዲስ</option>
                 <option value="existing">ነባር</option>
               </select>
+
             </div>
+
           </div>
 
           {/* FILTER RESULT BAR */}
+
           <div className="mt-5 flex flex-col gap-3 rounded-xl bg-[#f8f5ec] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+
             <p className="text-sm text-slate-600">
               የተገኙ አባላት፦{" "}
               <span className="font-bold text-[#0d3b78]">
@@ -562,15 +661,20 @@ export default function StudentPage() {
             >
               <RefreshCw
                 size={16}
-                className={refreshing ? "animate-spin" : ""}
+                className={
+                  refreshing ? "animate-spin" : ""
+                }
               />
 
               {refreshing
                 ? "በመጫን ላይ..."
                 : "መረጃ አድስ"}
             </button>
+
           </div>
+
         </div>
+
       </section>
 
       {/* ========================================================
@@ -578,10 +682,13 @@ export default function StudentPage() {
       ======================================================== */}
 
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        {/* Table Header */}
+
         <div className="border-b border-slate-100 bg-gradient-to-r from-white to-slate-50 px-6 py-5">
+
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
             <div>
+
               <h2 className="text-lg font-bold text-[#172033]">
                 የተመዘገቡ አባላት
               </h2>
@@ -589,22 +696,29 @@ export default function StudentPage() {
               <p className="mt-1 text-sm text-slate-500">
                 የአባላት መረጃ እና የአስተዳደር ተግባራት።
               </p>
+
             </div>
 
             <div className="rounded-full bg-[#0d3b78]/5 px-4 py-2 text-xs font-semibold text-[#0d3b78]">
               {filteredMembers.length} አባላት
             </div>
+
           </div>
+
         </div>
 
-        {/* Loading */}
+        {/* LOADING */}
+
         {loading ? (
           <div className="flex min-h-[350px] flex-col items-center justify-center px-6">
+
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d3b78]/10">
+
               <RefreshCw
                 size={25}
                 className="animate-spin text-[#0d3b78]"
               />
+
             </div>
 
             <p className="mt-4 font-semibold text-[#172033]">
@@ -614,10 +728,15 @@ export default function StudentPage() {
             <p className="mt-1 text-sm text-slate-500">
               እባክዎ ትንሽ ይጠብቁ።
             </p>
+
           </div>
+
         ) : filteredMembers.length === 0 ? (
+
           /* EMPTY STATE */
+
           <div className="flex min-h-[350px] flex-col items-center justify-center px-6 text-center">
+
             <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[#0d3b78]/10 text-[#0d3b78]">
               <Users size={34} />
             </div>
@@ -633,19 +752,27 @@ export default function StudentPage() {
             </p>
 
             <Link
-              href="/dashboard/students/new"
+              href="/dashboard/student/new"
               className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0d3b78] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#0d3b78]/20 transition hover:-translate-y-0.5 hover:bg-[#0a2f61]"
             >
               <Plus size={18} />
               አዲስ አባል ይመዝግቡ
             </Link>
+
           </div>
+
         ) : (
+
           /* TABLE */
+
           <div className="overflow-x-auto">
+
             <table className="w-full min-w-[1050px]">
+
               <thead>
+
                 <tr className="border-b border-slate-200 bg-slate-50/80">
+
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-500">
                     አባል
                   </th>
@@ -669,11 +796,15 @@ export default function StudentPage() {
                   <th className="px-6 py-4 text-right text-xs font-bold text-slate-500">
                     ተግባር
                   </th>
+
                 </tr>
+
               </thead>
 
               <tbody className="divide-y divide-slate-100">
+
                 {filteredMembers.map((member) => {
+
                   const photoUrl = photoUrls[member.id];
 
                   return (
@@ -681,10 +812,15 @@ export default function StudentPage() {
                       key={member.id}
                       className="group transition hover:bg-[#f8f5ec]/45"
                     >
+
                       {/* MEMBER */}
+
                       <td className="px-6 py-4">
+
                         <div className="flex items-center gap-3">
+
                           <div className="relative shrink-0">
+
                             {photoUrl ? (
                               <img
                                 src={photoUrl}
@@ -701,14 +837,17 @@ export default function StudentPage() {
 
                             <span
                               className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                                member.registration_type === "new"
+                                member.registration_type ===
+                                "new"
                                   ? "bg-[#d4af37]"
                                   : "bg-emerald-500"
                               }`}
                             />
+
                           </div>
 
                           <div className="min-w-0">
+
                             <p className="truncate font-bold text-[#172033]">
                               {member.first_name}{" "}
                               {member.father_name}{" "}
@@ -716,31 +855,43 @@ export default function StudentPage() {
                             </p>
 
                             <div className="mt-1 flex items-center gap-2">
+
                               <span
                                 className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                  member.registration_type === "new"
+                                  member.registration_type ===
+                                  "new"
                                     ? "bg-[#d4af37]/15 text-[#8a6900]"
                                     : "bg-emerald-50 text-emerald-700"
                                 }`}
                               >
-                                {member.registration_type === "new"
+                                {member.registration_type ===
+                                "new"
                                   ? "አዲስ"
                                   : "ነባር"}
                               </span>
+
                             </div>
+
                           </div>
+
                         </div>
+
                       </td>
 
                       {/* REGISTRATION NUMBER */}
+
                       <td className="px-4 py-4">
+
                         <span className="rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-bold text-[#0d3b78]">
                           {member.registration_number}
                         </span>
+
                       </td>
 
                       {/* GENDER */}
+
                       <td className="px-4 py-4">
+
                         <span
                           className={`inline-flex rounded-full px-3 py-1.5 text-xs font-semibold ${
                             member.gender === "male"
@@ -752,25 +903,35 @@ export default function StudentPage() {
                             ? "ወንድ"
                             : "ሴት"}
                         </span>
+
                       </td>
 
                       {/* PHONE */}
+
                       <td className="px-4 py-4 text-sm text-slate-600">
+
                         {member.phone || (
                           <span className="text-slate-400">
                             -
                           </span>
                         )}
+
                       </td>
 
                       {/* DATE */}
+
                       <td className="px-4 py-4 text-sm text-slate-600">
-                        {formatDate(member.registration_date)}
+                        {formatDate(
+                          member.registration_date,
+                        )}
                       </td>
 
                       {/* ACTIONS */}
+
                       <td className="px-6 py-4">
+
                         <div className="flex justify-end gap-2">
+
                           <Link
                             href={`/dashboard/student/${member.id}`}
                             title="አባሉን ይመልከቱ"
@@ -789,21 +950,30 @@ export default function StudentPage() {
 
                           <button
                             type="button"
-                            onClick={() => deleteMember(member)}
+                            onClick={() =>
+                              deleteMember(member)
+                            }
                             title="አባሉን ይሰርዙ"
                             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:bg-red-100"
                           >
                             <Trash2 size={16} />
                           </button>
+
                         </div>
+
                       </td>
+
                     </tr>
                   );
                 })}
+
               </tbody>
+
             </table>
+
           </div>
         )}
+
       </section>
 
       {/* ========================================================
@@ -812,7 +982,9 @@ export default function StudentPage() {
 
       {!loading && filteredMembers.length > 0 && (
         <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-[#d4af37]/20 bg-gradient-to-r from-[#f8f5ec] to-white px-5 py-4 text-center sm:flex-row sm:text-left">
+
           <div>
+
             <p className="text-sm font-semibold text-[#172033]">
               የአባላት ምዝገባ ስርዓት
             </p>
@@ -820,14 +992,21 @@ export default function StudentPage() {
             <p className="mt-1 text-xs text-slate-500">
               ጽርሐ ጽዮን ሰንበት ት/ቤት
             </p>
+
           </div>
 
           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
+
             ስርዓቱ እየሰራ ነው
+
           </div>
+
         </div>
       )}
+
     </div>
   );
 }
+
