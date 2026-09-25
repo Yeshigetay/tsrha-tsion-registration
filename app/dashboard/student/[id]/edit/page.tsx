@@ -1,22 +1,4 @@
 "use client";
-import BackToHomeButton from "@/components/layout/BackToHomeButton";
-
-<div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-  <div>
-    <h1 className="text-2xl font-bold text-[#0d3b78]">
-      የአባል መረጃ ማስተካከያ
-    </h1>
-
-    <p className="mt-1 text-sm text-gray-600">
-      የአባሉን መረጃ ያስተካክሉ።
-    </p>
-  </div>
-
-  <BackToHomeButton />
-</div>
-
-
-
 
 import {
   ChangeEvent,
@@ -32,6 +14,7 @@ import {
   ArrowLeft,
   Camera,
   CheckCircle2,
+  Edit3,
   Loader2,
   Save,
   User,
@@ -575,7 +558,13 @@ export default function EditMemberPage() {
 
     if (uploadError) {
       throw new Error(
-        `${type === "member" ? "የአባሉ" : "የአሳዳጊ"} ፎቶ መጫን አልተሳካም፦ ${uploadError.message}`,
+        `${
+          type === "member"
+            ? "የአባሉ"
+            : "የአሳዳጊ"
+        } ፎቶ መጫን አልተሳካም፦ ${
+          uploadError.message
+        }`,
       );
     }
 
@@ -654,11 +643,12 @@ export default function EditMemberPage() {
       // --------------------------------------------------------
 
       if (guardianPhoto) {
-        newGuardianPhotoPath = await uploadPhoto(
-          guardianPhoto,
-          id,
-          "guardian",
-        );
+        newGuardianPhotoPath =
+          await uploadPhoto(
+            guardianPhoto,
+            id,
+            "guardian",
+          );
       }
 
       // --------------------------------------------------------
@@ -824,7 +814,6 @@ export default function EditMemberPage() {
           .eq("id", id);
 
       if (updateError) {
-        // Clean up newly uploaded files
         const filesToRemove = [
           newMemberPhotoPath,
           newGuardianPhotoPath,
@@ -871,7 +860,10 @@ export default function EditMemberPage() {
           ]);
       }
 
-      // Update local paths
+      // --------------------------------------------------------
+      // UPDATE LOCAL PATHS
+      // --------------------------------------------------------
+
       setForm((current) => ({
         ...current,
 
@@ -921,9 +913,7 @@ export default function EditMemberPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f8f5ec]">
-
         <div className="flex flex-col items-center gap-3">
-
           <Loader2
             size={34}
             className="animate-spin text-[#0d3b78]"
@@ -932,9 +922,7 @@ export default function EditMemberPage() {
           <p className="text-sm font-medium text-gray-500">
             የአባሉ መረጃ በመጫን ላይ...
           </p>
-
         </div>
-
       </main>
     );
   }
@@ -964,7 +952,6 @@ export default function EditMemberPage() {
             </Link>
 
             <div>
-
               <h1 className="text-lg font-bold">
                 የአባል መረጃ ማስተካከያ
               </h1>
@@ -972,7 +959,6 @@ export default function EditMemberPage() {
               <p className="text-xs text-blue-100">
                 የአባሉን መረጃ ያዘምኑ
               </p>
-
             </div>
 
           </div>
@@ -982,7 +968,6 @@ export default function EditMemberPage() {
         <div className="h-px bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
 
       </header>
-
 
       {/* ======================================================
           CONTENT
@@ -998,7 +983,6 @@ export default function EditMemberPage() {
           </div>
         )}
 
-
         {/* SUCCESS */}
 
         {success && (
@@ -1013,7 +997,6 @@ export default function EditMemberPage() {
 
           </div>
         )}
-
 
         <form
           onSubmit={handleSubmit}
@@ -1134,7 +1117,6 @@ export default function EditMemberPage() {
 
           </Section>
 
-
           {/* ==================================================
               ADDRESS
           ================================================== */}
@@ -1189,7 +1171,6 @@ export default function EditMemberPage() {
             />
 
           </Section>
-
 
           {/* ==================================================
               CHRISTIAN
@@ -1332,7 +1313,6 @@ export default function EditMemberPage() {
 
           </Section>
 
-
           {/* ==================================================
               GUARDIAN
           ================================================== */}
@@ -1390,7 +1370,6 @@ export default function EditMemberPage() {
             />
 
           </Section>
-
 
           {/* ==================================================
               INTERESTS
@@ -1463,7 +1442,6 @@ export default function EditMemberPage() {
 
           </Section>
 
-
           {/* ==================================================
               PHOTOS
           ================================================== */}
@@ -1497,7 +1475,6 @@ export default function EditMemberPage() {
 
           </Section>
 
-
           {/* ==================================================
               CONFIRMATION
           ================================================== */}
@@ -1528,7 +1505,9 @@ export default function EditMemberPage() {
 
             </label>
 
-            <Input
+            {/* MEMBER SIGNATURE */}
+
+            <SignatureInput
               label="የአባል ፊርማ"
               value={form.memberSignature}
               onChange={(value) =>
@@ -1539,7 +1518,9 @@ export default function EditMemberPage() {
               }
             />
 
-            <Input
+            {/* GUARDIAN SIGNATURE */}
+
+            <SignatureInput
               label="የወላጅ / አሳዳጊ ፊርማ"
               value={form.guardianSignature}
               onChange={(value) =>
@@ -1551,7 +1532,6 @@ export default function EditMemberPage() {
             />
 
           </Section>
-
 
           {/* ==================================================
               REGISTRAR
@@ -1608,7 +1588,9 @@ export default function EditMemberPage() {
               }
             />
 
-            <Input
+            {/* REGISTRAR SIGNATURE */}
+
+            <SignatureInput
               label="የመዝጋቢ ፊርማ"
               value={
                 form.registrarSignature
@@ -1632,7 +1614,9 @@ export default function EditMemberPage() {
               }
             />
 
-            <Input
+            {/* CLASS LEADER SIGNATURE */}
+
+            <SignatureInput
               label="የክፍል መሪ ፊርማ"
               value={
                 form.classLeaderSignature
@@ -1656,7 +1640,9 @@ export default function EditMemberPage() {
               }
             />
 
-            <Input
+            {/* CHAIRMAN SIGNATURE */}
+
+            <SignatureInput
               label="የሰብሳቢ ፊርማ"
               value={
                 form.chairmanSignature
@@ -1670,7 +1656,6 @@ export default function EditMemberPage() {
             />
 
           </Section>
-
 
           {/* ==================================================
               ACTIONS
@@ -1719,7 +1704,6 @@ export default function EditMemberPage() {
   );
 }
 
-
 /* ============================================================
    SECTION
 ============================================================ */
@@ -1756,7 +1740,6 @@ function Section({
   );
 }
 
-
 /* ============================================================
    INPUT
 ============================================================ */
@@ -1781,6 +1764,7 @@ function Input({
 
       <label className="mb-2 block text-sm font-semibold text-[#172033]">
         {label}
+
         {required && (
           <span className="ml-1 text-red-500">
             *
@@ -1807,7 +1791,6 @@ function Input({
   );
 }
 
-
 /* ============================================================
    SELECT
 ============================================================ */
@@ -1833,6 +1816,7 @@ function Select({
 
       <label className="mb-2 block text-sm font-semibold text-[#172033]">
         {label}
+
         {required && (
           <span className="ml-1 text-red-500">
             *
@@ -1868,6 +1852,97 @@ function Select({
   );
 }
 
+/* ============================================================
+   SIGNATURE INPUT
+============================================================ */
+
+function SignatureInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const isSignatureImage =
+    typeof value === "string" &&
+    value.startsWith("data:image/");
+
+  return (
+    <div>
+
+      <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#172033]">
+        <Edit3
+          size={15}
+          className="text-[#0d3b78]"
+        />
+
+        {label}
+      </label>
+
+      <div className="rounded-2xl border border-slate-200 bg-[#fafafa] p-4">
+
+        {/* SAVED SIGNATURE PREVIEW */}
+
+        {isSignatureImage ? (
+          <div className="mb-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-3">
+
+            <div className="mb-2 text-xs font-semibold text-gray-500">
+              የተመዘገበ ፊርማ
+            </div>
+
+            <div className="flex min-h-[100px] items-center justify-center rounded-xl bg-white p-3">
+              <img
+                src={value}
+                alt={label}
+                className="max-h-24 max-w-full object-contain"
+              />
+            </div>
+
+          </div>
+        ) : (
+          <div className="mb-3 flex min-h-[100px] items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white">
+
+            <div className="text-center">
+
+              <Edit3
+                size={28}
+                className="mx-auto mb-2 text-gray-300"
+              />
+
+              <p className="text-sm font-medium text-gray-400">
+                ፊርማ የለም
+              </p>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* HIDDEN VALUE INPUT */}
+
+        <input
+          type="hidden"
+          value={value}
+          onChange={(event) =>
+            onChange(event.target.value)
+          }
+        />
+
+        {/* INFO */}
+
+        {isSignatureImage && (
+          <p className="text-xs leading-5 text-gray-500">
+            ይህ ፊርማ በመጀመሪያ ሲመዘገብ የተቀመጠ ነው።
+          </p>
+        )}
+
+      </div>
+
+    </div>
+  );
+}
 
 /* ============================================================
    PHOTO INPUT
