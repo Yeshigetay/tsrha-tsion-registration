@@ -746,6 +746,27 @@ export default function MemberRegistrationForm() {
         )}`;
 
       // --------------------------------------------------------
+      // VERIFY AUTH SESSION BEFORE STORAGE UPLOAD
+      // --------------------------------------------------------
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw new Error(
+          `የመግቢያ ሁኔታን ማረጋገጥ አልተቻለም፦ ${sessionError.message}`,
+        );
+      }
+
+      if (!session?.user) {
+        throw new Error(
+          "የአስተዳዳሪ መለያዎ የመግቢያ ሁኔታ ጠፍቷል። እባክዎ ወጥተው እንደገና ይግቡ።",
+        );
+      }
+
+      // --------------------------------------------------------
       // UPLOAD MEMBER PHOTO
       // --------------------------------------------------------
 
@@ -758,13 +779,27 @@ export default function MemberRegistrationForm() {
           memberPhoto!,
           {
             cacheControl: "3600",
+            contentType: memberPhoto!.type || "image/jpeg",
             upsert: false,
           },
         );
 
       if (memberPhotoError) {
+        console.error("Member photo upload error:", {
+          message: memberPhotoError.message,
+          name: memberPhotoError.name,
+          status: memberPhotoError.status,
+          statusText: memberPhotoError.statusText,
+          path: memberPhotoPath,
+          userId: session.user.id,
+        });
+
         throw new Error(
-          `የአባሉ ፎቶ መጫን አልተሳካም፦ ${memberPhotoError.message}`,
+          `የአባሉ ፎቶ መጫን አልተሳካም፦ ${memberPhotoError.message}${
+            memberPhotoError.status
+              ? ` (HTTP ${memberPhotoError.status})`
+              : ""
+          }`,
         );
       }
 
@@ -781,19 +816,33 @@ export default function MemberRegistrationForm() {
           guardianPhoto!,
           {
             cacheControl: "3600",
+            contentType: guardianPhoto!.type || "image/jpeg",
             upsert: false,
           },
         );
 
       if (guardianPhotoError) {
-        await supabase.storage
-          .from("member-photos")
-          .remove([
-            memberPhotoPath,
-          ]);
+        console.error("Guardian photo upload error:", {
+          message: guardianPhotoError.message,
+          name: guardianPhotoError.name,
+          status: guardianPhotoError.status,
+          statusText: guardianPhotoError.statusText,
+          path: guardianPhotoPath,
+          userId: session.user.id,
+        });
+
+        if (memberPhotoPath) {
+          await supabase.storage
+            .from("member-photos")
+            .remove([memberPhotoPath]);
+        }
 
         throw new Error(
-          `የወላጅ/አሳዳጊ ፎቶ መጫን አልተሳካም፦ ${guardianPhotoError.message}`,
+          `የወላጅ/አሳዳጊ ፎቶ መጫን አልተሳካም፦ ${guardianPhotoError.message}${
+            guardianPhotoError.status
+              ? ` (HTTP ${guardianPhotoError.status})`
+              : ""
+          }`,
         );
       }
 
